@@ -21,6 +21,11 @@ jobs:
 
       - name: Build
         run: |
+          GRADLEW=$(find . -name gradlew -not -path './.git/*' | head -n1)
+          if [ -z "$GRADLEW" ]; then
+            echo "gradlew не найден в репозитории"; exit 1
+          fi
+          cd "$(dirname "$GRADLEW")"
           chmod +x gradlew
           ./gradlew clean build --no-daemon
 
@@ -29,5 +34,5 @@ jobs:
         with:
           name: DeathClient-jar
           path: |
-            build/libs/*.jar
-            !build/libs/*-sources.jar
+            **/build/libs/*.jar
+            !**/build/libs/*-sources.jar

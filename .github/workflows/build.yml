@@ -21,16 +21,24 @@ jobs:
         with:
           gradle-version: 9.1.0
 
-      - name: Show repo files
-        run: ls -la && find . -maxdepth 2 -not -path './.git*' | head -50
+      - name: Unpack project zip if needed
+        run: |
+          if [ -z "$(find . -name build.gradle -not -path './.git/*' | head -n1)" ]; then
+            Z=$(ls *.zip 2>/dev/null | head -n1)
+            if [ -z "$Z" ]; then
+              echo "Нет ни build.gradle, ни .zip с проектом в репозитории"
+              ls -la
+              exit 1
+            fi
+            echo "Распаковываю $Z"
+            unzip -q "$Z" -d project
+          fi
 
       - name: Build
         run: |
           BG=$(find . -name build.gradle -not -path './.git/*' | head -n1)
-          if [ -z "$BG" ]; then
-            echo "build.gradle не найден в репозитории"; exit 1
-          fi
           cd "$(dirname "$BG")"
+          sed -i '/^org.gradle.java.home=/d' gradle.properties || true
           gradle clean build --no-daemon
 
       - name: Upload jar
